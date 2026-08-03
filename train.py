@@ -20,6 +20,7 @@ Run in cloud:
 
 import os
 import re
+import sys
 import math
 import zipfile
 import urllib.request
@@ -45,6 +46,18 @@ except ImportError:
 from CBOW_model import CBOW
 from CBOW_Data import CBOWOneHotDataset
 from BPE_Tokenizer import BPETokenizer
+
+
+def _get_tqdm():
+    """Use tqdm.notebook widget bars inside Jupyter, plain tqdm elsewhere."""
+    try:
+        if get_ipython().__class__.__name__ == "ZMQInteractiveShell":
+            from tqdm.notebook import tqdm
+            return tqdm
+    except Exception:
+        pass
+    from tqdm import tqdm
+    return tqdm
 
 # ----------------------------------------------------------------------------
 # Configuration
@@ -368,14 +381,23 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg["lr"])
 
     # 5) Training loop with tqdm progress bars
+    # Jupyter -> widget bars (tqdm.notebook). Plain terminal -> nested bars.
+    # Piped logs (no TTY, no notebook) -> disable the inner batch bar, since
+    # tqdm can't redraw in place there and prints a new line every refresh.
+    tqdm = _get_tqdm()
+    notebook_mode = tqdm.__name__ == "tqdm_notebook"
+    is_tty = sys.stderr.isatty()
     losses = []
     print("\nTraining started ...")
-    epoch_bar = tqdm(range(1, cfg["epochs"] + 1), desc="Epochs", position=0)
+    epoch_bar = tqdm(range(1, cfg["epochs"] + 1), desc="Epochs",
+                     position=0, leave=False)
     for epoch in epoch_bar:
         model.train()
         total, count = 0.0, 0
         batch_bar = tqdm(dataloader, desc=f"Epoch {epoch:>2}/{cfg['epochs']}",
-                         position=1, leave=False)
+                         position=1, leave=False,
+                         disable=not (is_tty or notebook_mode),
+                         mininterval=0.5)
         for ctx, tgt in batch_bar:
             ctx, tgt = ctx.to(device), tgt.to(device)
             optimizer.zero_grad()
