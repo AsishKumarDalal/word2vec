@@ -169,13 +169,13 @@ All knobs live in the `CONFIG` dict at the top of `train.py`:
 | `emb_size`         | `100`   | embedding dimension |
 | `context_size`     | `2`     | words on each side of the target |
 | `max_length`       | `256`   | max tokens per training chunk |
-| `vocab_size`       | `5000`  | target BPE vocab size |
+| `vocab_size`       | `10000`  | target BPE vocab size |
 | `batch_size`       | `64`    | batches per step |
 | `epochs`            | `12`    | number of training epochs |
 | `lr`                | `0.001` | Adam learning rate |
 | `seed`              | `42`    | reproducibility seed |
-| `max_corpus_words`  | `150_000` | cap for text8 (memory/time) |
-| `max_pairs`         | `200_000` | cap the number of training pairs |
+| `max_corpus_words`  | `150_000_000` | cap words used from the corpus (text8 is ~17M words) |
+| `max_pairs`         | `2_000_000` | cap the number of training pairs (early-stop, sampled across the whole corpus) |
 | `device`            | auto    | `cuda` if available, else `cpu` |
 | `data_url`          | `mattmahoney.net/.../text8.zip` | corpus download URL |
 | `out_dir`           | `outputs/` | where plots/embeddings go |

@@ -60,13 +60,13 @@ CONFIG = {
     "emb_size": 100,            # embedding dimension
     "context_size": 2,          # words on each side of the target
     "max_length": 256,
-    "vocab_size": 10000,         # keep the 5000 most frequent words
+    "vocab_size": 10000,        # target BPE vocab size
     "batch_size": 64,
     "epochs": 12,
     "lr": 0.001,
     "seed": 42,
-    "max_corpus_words": 1500000,  # cap corpus (text8) for memory/time
-    "max_pairs": 200_000,         # cap number of (context, target) pairs
+    "max_corpus_words": 150000000,  # cap corpus (text8) for memory/time
+    "max_pairs": 2000000,         # cap number of (context, target) pairs
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "data_url": "https://mattmahoney.net/dc/text8.zip",
     "out_dir": "outputs",
@@ -364,8 +364,9 @@ def main():
     # 3) Dataset / DataLoader
     dataset = CBOWOneHotDataset(texts, tokenizer,
                                 context_size=cfg["context_size"],
-                                max_length=cfg["max_length"])
-    dataset.pairs = dataset.pairs[:cfg["max_pairs"]]
+                                max_length=cfg["max_length"],
+                                max_pairs=cfg["max_pairs"],
+                                seed=cfg["seed"])
     dataloader = DataLoader(dataset, batch_size=cfg["batch_size"], shuffle=True)
     print(f"Training pairs: {len(dataset)}")
 
