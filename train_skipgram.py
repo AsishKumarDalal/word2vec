@@ -63,7 +63,7 @@ CONFIG = {
     "context_size": 4,          # words on each side of the center word
     "max_length": 256,
     "vocab_size": 10000,        # target BPE vocab size
-    "batch_size": 256,
+    "batch_size": 1024,
     "epochs": 15,               # skip-gram converges slower than CBOW
     "lr": 0.001,
     "seed": 42,
