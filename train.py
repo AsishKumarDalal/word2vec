@@ -46,18 +46,12 @@ except ImportError:
 from CBOW_model import CBOW
 from CBOW_Data import CBOWOneHotDataset
 from BPE_Tokenizer import BPETokenizer
+from tqdm.auto import tqdm as _tqdm_auto   # widget bars in notebooks, text elsewhere
+import tqdm.std
 
-
-def _get_tqdm():
-    """Use tqdm.notebook widget bars inside Jupyter, plain tqdm elsewhere."""
-    try:
-        if get_ipython().__class__.__name__ == "ZMQInteractiveShell":
-            from tqdm.notebook import tqdm
-            return tqdm
-    except Exception:
-        pass
-    from tqdm import tqdm
-    return tqdm
+# True when tqdm.auto picked the ipywidgets (notebook) renderer => bars can
+# be redrawn in place. Native Jupyter/Colab/Kaggle kernels choose it.
+NOTEBOOK_BARS = _tqdm_auto is not tqdm.std.tqdm
 
 # ----------------------------------------------------------------------------
 # Configuration
@@ -380,24 +374,20 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg["lr"])
 
-    # 5) Training loop with tqdm progress bars
-    # Jupyter -> widget bars (tqdm.notebook). Plain terminal -> nested bars.
-    # Piped logs (no TTY, no notebook) -> disable the inner batch bar, since
-    # tqdm can't redraw in place there and prints a new line every refresh.
-    tqdm = _get_tqdm()
-    notebook_mode = tqdm.__name__ == "tqdm_notebook"
+    # 5) Training loop with tqdm progress bars.
+    # One bar per epoch (no nested bars). Widget bars in Jupyter/Colab/Kaggle
+    # redraw in place; on a real terminal the bar rewrites the same line; when
+    # output is piped (no widgets, no TTY) the bar is disabled and we only
+    # print one clean "avg_loss" line per epoch so logs don't spam.
     is_tty = sys.stderr.isatty()
     losses = []
     print("\nTraining started ...")
-    epoch_bar = tqdm(range(1, cfg["epochs"] + 1), desc="Epochs",
-                     position=0, leave=False)
-    for epoch in epoch_bar:
+    for epoch in range(1, cfg["epochs"] + 1):
         model.train()
         total, count = 0.0, 0
-        batch_bar = tqdm(dataloader, desc=f"Epoch {epoch:>2}/{cfg['epochs']}",
-                         position=1, leave=False,
-                         disable=not (is_tty or notebook_mode),
-                         mininterval=0.5)
+        batch_bar = _tqdm_auto(dataloader, desc=f"Epoch {epoch:>2}/{cfg['epochs']}",
+                               leave=False, mininterval=0.5,
+                               disable=not (NOTEBOOK_BARS or is_tty))
         for ctx, tgt in batch_bar:
             ctx, tgt = ctx.to(device), tgt.to(device)
             optimizer.zero_grad()
@@ -410,7 +400,7 @@ def main():
             batch_bar.set_postfix(loss=f"{loss.item():.4f}")
         avg = total / max(count, 1)
         losses.append(avg)
-        epoch_bar.set_postfix(avg_loss=f"{avg:.4f}")
+        print(f"   Epoch {epoch:>2}/{cfg['epochs']} | avg_loss = {avg:.4f}")
 
     # 6) Save model
     torch.save({
