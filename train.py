@@ -65,7 +65,7 @@ CONFIG = {
     "epochs": 12,
     "lr": 0.001,
     "seed": 42,
-    "max_corpus_words": 150_000,  # cap corpus (text8) for memory/time
+    "max_corpus_words": 1500000,  # cap corpus (text8) for memory/time
     "max_pairs": 200_000,         # cap number of (context, target) pairs
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "data_url": "https://mattmahoney.net/dc/text8.zip",
