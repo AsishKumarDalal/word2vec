@@ -14,3 +14,4 @@ class CBOW(nn.Module):
         x = torch.mean(x, dim=1)
         out=self.W_dash(x)
         return out
+    
