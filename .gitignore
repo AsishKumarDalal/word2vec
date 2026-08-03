@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+env3/
+.conda/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Training data
+text8
+text8.zip
+corpus.txt
+
+# Model artifacts / outputs
+cbow_model.pt
+outputs/
+
+# IDEs / editors
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
